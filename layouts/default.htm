@@ -1,5 +1,43 @@
 description = "Default"
 ==
+<?php
+function onSend()
+{
+    // Collect input
+    $name = post('name');
+    $email = post('email');
+    $phone = post('phone');
+    $body = post('msg');
+
+    // Form Validation
+    $validator = Validator::make(
+        [
+            'name' => $name,
+            'email' => $email,
+            'phone' => $phone,
+            'msg' => $body,
+        ],
+        [
+            'name' => 'required',
+            'email' => 'required|email',
+            'msg' => 'required',
+        ]
+    );
+    if ($validator->fails())
+    {
+        $messages = $validator->messages();
+        throw new ApplicationException($messages->first());
+    }
+
+    // All is well -- Submit form
+    $to = System\Models\MailSettings::get('sender_email');
+    $params = compact('name','email','phone','body');
+    Mail::sendTo($to, 'freelance::mail.contact', $params);
+
+    return true;
+}
+?>
+==
 <!DOCTYPE html>
 
 <html lang="en">
@@ -114,6 +152,7 @@ description = "Default"
     ]|theme }}"></script>
 
     {% scripts %}
+    {% framework extras %}
 
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
 
